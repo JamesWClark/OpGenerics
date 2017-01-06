@@ -25,6 +25,21 @@ function signinChanged(isSignedIn) {
     var googleUser = auth2.currentUser.get();
     var authResponse = googleUser.getAuthResponse();
     var profile = googleUser.getBasicProfile();
+    
+    $('#email').html('<p>' + profile.getEmail() + '</p>');
+    $('#photo').html('<img src="' + profile.getImageUrl() + '">');
+    
+    // some other properties
+    console.log(profile.getId());
+    console.log(profile.getName());
+    console.log(profile.getGivenName());
+    console.log(profile.getFamilyName());
+    console.log(profile.getImageUrl());
+    console.log(profile.getEmail());
+    console.log(googleUser.getHostedDomain());
+    console.log(authResponse.id_token);
+    console.log(authResponse.expires_at);
+
   } else {
     console.log('the user must not be signed in if this is printing');
   }
