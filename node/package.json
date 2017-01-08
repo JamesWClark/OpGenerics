@@ -2,6 +2,7 @@
   "dependencies": {
     "body-parser": "^1.15",
     "express": "^4.13",
-    "mongodb": "^2.2"
+    "mongodb": "^2.2",
+    "socket.io": "^1.7.2"
   }
 }
