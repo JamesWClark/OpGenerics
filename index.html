@@ -10,13 +10,15 @@
 <body>
   <div class="g-signin2" data-onsuccess="onSignIn"></div>
   <a href="#" onclick="signOut();">Sign out</a>
-  
+  <a href="#" onclick="disconnect();">Disconnect</a>
   <div id="email"></div>
   <div id="photo"></div>
   
+  <div id="post-status"></div>
+  
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
   <script src="main.js"></script>
-  <script src="https://apis.google.com/js/platform.js?onload=appStart" async defer></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
 </body>
 
 </html>
