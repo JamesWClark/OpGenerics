@@ -1,8 +1,14 @@
 {
   "dependencies": {
+<<<<<<< HEAD
     "body-parser": "^1.15",
     "express": "^4.13",
     "mongodb": "^2.2",
     "socket.io": "^1.7.2"
+=======
+    "body-parser": "^1.16.0",
+    "express": "^4.14.0",
+    "mongodb": "^2.2.21"
+>>>>>>> be9227485ee48cb30816209d0b3bc5f1a4cc54f0
   }
 }
