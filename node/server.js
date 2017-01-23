@@ -3,6 +3,7 @@ var jws         = require('jws');           // json web signatures
 var jwt         = require('jsonwebtoken');  // json web tokens
 var http        = require('http');          // http protocol
 var moment      = require('moment');        // time library
+// var corser      = require('corser');        // cross origin support
 var express     = require('express');       // web server
 var request     = require('request');       // http trafficer
 var jwkToPem    = require('jwk-to-pem');    // converts json web key to pem
@@ -99,7 +100,14 @@ app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization');
-  next();
+  
+  // end pre flights
+  if(req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+  } else {
+    next();
+  }
 });
 
 function getPem(keyID) {
@@ -111,17 +119,34 @@ function getPem(keyID) {
 
 // authorize all request tokens
 function authorize(req, res, next) {
-  if(req && req.headers && req.headers.authorization) {
-    var idToken = req.headers.authorization;
-    var decodedToken = jwt.decode(idToken, { complete : true });  // ex: http://www.jsonmate.com/permalink/57a0372c4fef248c399c5dd6        
-    var keyID = decodedToken.header.kid;
-    var algorithm = decodedToken.header.alg;
-    log('key id = ', keyID);
-  } else {
-    log('NOT VALID');
-  }
+  try {
+    var token           = req.headers.authorization;
+    var decoded         = jwt.decode(token, { complete : true });  // ex: http://www.jsonmate.com/permalink/57a0372c4fef248c399c5dd6        
+    var keyID           = decoded.header.kid;
+    var algorithm       = decoded.header.alg;
+    var pem             = getPem(keyID);
+    var signature       = decoded.signature;
+    
+    var options = {
+      audience : CLIENT_ID,
+      issuer : 'accounts.google.com',
+      algorithms : [ algorithm ]
+    }
+    
+    jwt.verify(token, pem, options, function(err) {
+      if(err) {
+        res.writeHead(401);
+        res.end();
+      } else {
+        log('VALID');
+        next();
+      }
+    });
 
-  next();
+  } catch(err) {
+    res.writeHead(401);
+    res.end();
+  }
 }
 
 /*
