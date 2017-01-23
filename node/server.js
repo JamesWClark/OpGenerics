@@ -1,9 +1,7 @@
 var fs          = require('fs');            // file systems
-var jws         = require('jws');           // json web signatures
 var jwt         = require('jsonwebtoken');  // json web tokens
 var http        = require('http');          // http protocol
 var moment      = require('moment');        // time library
-// var corser      = require('corser');        // cross origin support
 var express     = require('express');       // web server
 var request     = require('request');       // http trafficer
 var jwkToPem    = require('jwk-to-pem');    // converts json web key to pem
@@ -17,6 +15,7 @@ var keyCache = {};
 
 // gets the google public keys and caches them in keyCache
 function updateWellKnownKeys() {
+  
   // get the well known config from google
   request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
     var config    = JSON.parse(body);
@@ -35,6 +34,33 @@ function updateWellKnownKeys() {
 
 // cache google's public keys
 updateWellKnownKeys();
+
+// custom logging
+function log(msg, obj) {
+    console.log('\n');
+    if(obj) {
+        try {
+            console.log(msg + JSON.stringify(obj));
+        } catch(err) {
+            var simpleObject = {};
+            for (var prop in obj ){
+                if (!obj.hasOwnProperty(prop)){
+                    continue;
+                }
+                if (typeof(obj[prop]) == 'object'){
+                    continue;
+                }
+                if (typeof(obj[prop]) == 'function'){
+                    continue;
+                }
+                simpleObject[prop] = obj[prop];
+            }
+            console.log('circular-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
+        }        
+    } else {
+        console.log(msg);
+    }
+}
 
 // static MongoDB operations
 Mongo.connect(MONGO_URL, function (err, db) {
@@ -61,42 +87,16 @@ Mongo.connect(MONGO_URL, function (err, db) {
   }
 });
 
-// custom logging
-var log = function(msg, obj) {
-    console.log('\n');
-    if(obj) {
-        try {
-            console.log(msg + JSON.stringify(obj));
-        } catch(err) {
-            var simpleObject = {};
-            for (var prop in obj ){
-                if (!obj.hasOwnProperty(prop)){
-                    continue;
-                }
-                if (typeof(obj[prop]) == 'object'){
-                    continue;
-                }
-                if (typeof(obj[prop]) == 'function'){
-                    continue;
-                }
-                simpleObject[prop] = obj[prop];
-            }
-            console.log('circular-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
-        }        
-    } else {
-        console.log(msg);
-    }
-};
+// turns json web key into pem
+function getPem(keyID) {
+  var jsonWebKeys = keyCache.keys.filter(function(key) {
+    return key.kid === keyID;
+  });
+  return jwkToPem(jsonWebKeys[0]);
+}
 
-// http server
-var app = express();
-
-// body parsing ensures req.body property
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// allow requests across all domains
-app.use(function(req, res, next) {
+// cross domain middleware
+function allowCrossDomain(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization');
@@ -108,16 +108,9 @@ app.use(function(req, res, next) {
   } else {
     next();
   }
-});
-
-function getPem(keyID) {
-  var jsonWebKeys = keyCache.keys.filter(function(key) {
-    return key.kid === keyID;
-  });
-  return jwkToPem(jsonWebKeys[0]);
 }
 
-// authorize all request tokens
+// authorization middleware
 function authorize(req, res, next) {
   try {
     var token           = req.headers.authorization;
@@ -128,9 +121,9 @@ function authorize(req, res, next) {
     var signature       = decoded.signature;
     
     var options = {
-      audience : CLIENT_ID,
-      issuer : 'accounts.google.com',
-      algorithms : [ algorithm ]
+      audience    : CLIENT_ID,
+      issuer      : 'accounts.google.com',
+      algorithms  : [ algorithm ]
     }
     
     jwt.verify(token, pem, options, function(err) {
@@ -149,17 +142,13 @@ function authorize(req, res, next) {
   }
 }
 
-/*
-function validateIdToken(idToken) {
-  var decoded = jwt.decode(idToken, { complete : true });
-  var options = {
-    'audience'    : CLIENT_ID,
-    'issuer'      : 'accounts.google.com',
-    'algorithms'  : [ decoded.header.alg ]
-  }
-}
-*/
+// http server
+var app = express();
 
+// body parsing ensures req.body property
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(allowCrossDomain);
 app.use(authorize);
 
 app.post('/login', function (req, res) {
