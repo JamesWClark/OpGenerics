@@ -1,38 +1,39 @@
+// TODO : http://stackoverflow.com/questions/38240504/refresh-expired-jwt-in-browser-when-using-google-sign-in-for-websites
+// READ : http://stackoverflow.com/questions/3105296/if-rest-applications-are-supposed-to-be-stateless-how-do-you-manage-sessions
+// READ : http://www.cloudidentity.com/blog/2014/03/03/principles-of-token-validation/
+
+var profile;      // google user profile
+var authResponse; // google user auth response
+
 // this statement is a redirect for brackets development
 if (window.location.hostname === '127.0.0.1') {
   window.location = 'http://localhost:1898';
 }
 
+// prepend the url of node.js server
+function route(url) {
+  return 'http://192.168.1.9:3000' + url;
+}
+
 function onSignIn(googleUser) {
-  var profile = googleUser.getBasicProfile();
-  var authResponse = googleUser.getAuthResponse();
+  profile       = googleUser.getBasicProfile();
+  authResponse  = googleUser.getAuthResponse();
   
+  var login = {
+      'id'            : profile.getId(),
+      'name'          : profile.getName(),
+      'givenName'     : profile.getGivenName(),
+      'familyName'    : profile.getFamilyName(),
+      'imageUrl'      : profile.getImageUrl(),
+      'email'         : profile.getEmail(),
+      'hostedDomain'  : googleUser.getHostedDomain()
+  }
+
+  post('/login', login);
+
   $('.g-signin2').hide();
   $('#email').html('<p>' + profile.getEmail() + '</p>');
   $('#photo').html('<img src="' + profile.getImageUrl() + '">');
-
-  // properties from google
-  console.log(profile.getId());
-  console.log(profile.getName());
-  console.log(profile.getGivenName());
-  console.log(profile.getFamilyName());
-  console.log(profile.getImageUrl());
-  console.log(profile.getEmail());
-  console.log(googleUser.getHostedDomain());
-  console.log(authResponse.id_token);
-  console.log(authResponse.expires_at);
-  
-  var json = {
-    id: profile.getId(),
-    name: profile.getName(),
-    givenName: profile.getGivenName()
-  };
-  
-  console.log(JSON.stringify(json));
-  
-  $.post('http://10.10.90.58:3000/signin', json, function(data) {
-    $('#post-status').text(data);
-  });
 }
 
 function signOut() {
@@ -48,3 +49,22 @@ function disconnect() {
   $('#email').html('');
   $('#photo').html('');
 }
+
+function post(url, json, success, error) {
+  console.log(authResponse.id_token);
+  $.ajax({
+    url : route(url),
+    method : 'POST',
+    data : json,
+    headers : {
+      'Authorization' : authResponse.id_token
+    },
+    success : function() {
+      if(success) success();
+    },
+    error : function() {
+      if(error) error();
+    }
+  });
+}
+
