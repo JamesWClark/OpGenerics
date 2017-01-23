@@ -12,7 +12,7 @@ if (window.location.hostname === '127.0.0.1') {
 
 // prepend the url of node.js server
 function route(url) {
-  return 'http://192.168.1.9:3000' + url;
+  return 'http://localhost:3000' + url;
 }
 
 function onSignIn(googleUser) {

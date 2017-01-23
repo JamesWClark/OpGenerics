@@ -111,10 +111,15 @@ function getPem(keyID) {
 
 // authorize all request tokens
 function authorize(req, res, next) {
-  var idToken = req.headers.authorization;
-  var decodedToken = jwt.decode(idToken, { complete : true });  // ex: http://www.jsonmate.com/permalink/57a0372c4fef248c399c5dd6        
-  var keyID = decodedToken.header.kid;
-  var algorithm = decodedToken.header.alg;
+  if(req && req.headers && req.headers.authorization) {
+    var idToken = req.headers.authorization;
+    var decodedToken = jwt.decode(idToken, { complete : true });  // ex: http://www.jsonmate.com/permalink/57a0372c4fef248c399c5dd6        
+    var keyID = decodedToken.header.kid;
+    var algorithm = decodedToken.header.alg;
+    log('key id = ', keyID);
+  } else {
+    log('NOT VALID');
+  }
 
   next();
 }
@@ -131,10 +136,6 @@ function validateIdToken(idToken) {
 */
 
 app.use(authorize);
-
-app.get('/', function (req, res) {
-  res.send('hello');
-});
 
 app.post('/login', function (req, res) {
   log('req.body = ', req.body);
