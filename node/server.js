@@ -20,9 +20,10 @@ var keyCache = {}; // public key cache
 function cacheWellKnownKeys() {
   
   // get the well known config from google
-  request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
+  var uri = 'https://accounts.google.com/.well-known/openid-configuration';
+  request(uri, function(err, res, body) {
     var config    = JSON.parse(body);
-    var address   = config.jwks_uri; // ex: https://www.googleapis.com/oauth2/v3/certs
+    var address   = config.jwks_uri;
     var timestamp = moment();
   
     // get the public json web keys
@@ -189,3 +190,5 @@ function log(msg, obj) {
         console.log(msg);
     }
 }
+
+https://classroom.google.com/c/Mzg2OTI0ODg4Nlpa

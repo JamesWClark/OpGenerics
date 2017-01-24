@@ -8,7 +8,9 @@ if (window.location.hostname === '127.0.0.1') {
   window.location = 'http://localhost:1898';
 }
 
-// prepend the url of node.js server
+/**
+ * Helper function to target
+ */
 function route(url) {
   return 'http://192.168.1.9:3000' + url;
 }
@@ -51,6 +53,9 @@ function disconnect() {
   $('#photo').html('');
 }
 
+/**
+ * Generic post with Authorization in every header
+ */
 function post(url, json, success, error) {
   $.ajax({
     url : route(url),

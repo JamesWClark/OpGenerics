@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "body-parser": "^1.16.0",
-    "corser": "^2.0.1",
     "express": "^4.14.0",
     "jsonwebtoken": "^7.2.1",
     "jwk-to-pem": "^1.2.6",
