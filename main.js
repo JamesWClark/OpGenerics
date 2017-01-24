@@ -1,9 +1,7 @@
 // TODO : http://stackoverflow.com/questions/38240504/refresh-expired-jwt-in-browser-when-using-google-sign-in-for-websites
+// OR   : http://stackoverflow.com/questions/32150845/how-to-refresh-expired-google-sign-in-logins?rq=1
 // READ : http://stackoverflow.com/questions/3105296/if-rest-applications-are-supposed-to-be-stateless-how-do-you-manage-sessions
 // READ : http://www.cloudidentity.com/blog/2014/03/03/principles-of-token-validation/
-
-var profile;      // google user profile
-var authResponse; // google user auth response
 
 // this statement is a redirect for brackets development
 if (window.location.hostname === '127.0.0.1') {
@@ -15,6 +13,9 @@ function route(url) {
   return 'http://192.168.1.9:3000' + url;
 }
 
+var profile;      // google user profile
+var authResponse; // google user auth response
+  
 function onSignIn(googleUser) {
   profile       = googleUser.getBasicProfile();
   authResponse  = googleUser.getAuthResponse();
@@ -51,7 +52,6 @@ function disconnect() {
 }
 
 function post(url, json, success, error) {
-  console.log(authResponse.id_token);
   $.ajax({
     url : route(url),
     method : 'POST',

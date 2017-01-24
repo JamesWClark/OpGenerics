@@ -15,6 +15,7 @@ var keyCache = {}; // public key cache
 
 /**
  * Cache Google's well known public keys
+ * TODO: refresh cache on public key change
  */
 function cacheWellKnownKeys() {
   
@@ -26,45 +27,16 @@ function cacheWellKnownKeys() {
   
     // get the public json web keys
     request(address, function(err, res, body) {
-      keyCache.keys = JSON.parse(body).keys;
-      keyCache.lastUpdate = timestamp;
-      keyCache.timeToLive = timestamp.add(12, 'hours');
-      log(timestamp.format('x') + ': cached google public keys ', keyCache.keys);
+      keyCache.keys         = JSON.parse(body).keys;
+      keyCache.lastUpdate   = timestamp;
+      keyCache.timeToLive   = timestamp.add(12, 'hours');
+      log('Cached keys = ', keyCache.keys);
     });
   });
 }
 
 // call the above function
 cacheWellKnownKeys();
-
-/**
- * Custom logger to prevent circular reference in JSON.parse(obj)
- */
-function log(msg, obj) {
-    console.log('\n');
-    if(obj) {
-        try {
-            console.log(msg + JSON.stringify(obj));
-        } catch(err) {
-            var simpleObject = {};
-            for (var prop in obj ){
-                if (!obj.hasOwnProperty(prop)){
-                    continue;
-                }
-                if (typeof(obj[prop]) == 'object'){
-                    continue;
-                }
-                if (typeof(obj[prop]) == 'function'){
-                    continue;
-                }
-                simpleObject[prop] = obj[prop];
-            }
-            console.log('circular-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
-        }        
-    } else {
-        console.log(msg);
-    }
-}
 
 /**
  * MongoDB operations
@@ -78,9 +50,21 @@ Mongo.connect(MONGO_URL, function (err, db) {
     var c = db.collection(collection);
     c.insert(json, function (err, result) {
       if (err) {
-        log('insert error: ' + err);
+        log('Mongo.ops.insert error = ' + err);
       } else {
-        log('insert success: ' + collection + ' = ', json);
+        log('Mongo.ops.insert success = ' + collection + ' = ', json);
+      }
+      if (callback) callback(err, result);
+    });
+  };
+  
+  Mongo.ops.upsert = function(collection, query, json, callback) {
+	var c = db.collection(collection);
+	c.updateOne(query, { $set : json }, { upsert : true }, function (err, result) {
+      if(err) {
+        log('Mongo.ops.upsert error = ', err);
+      } else {
+        log('Mongo.ops.upsert success = ' + collection + ' = ', result);
       }
       if (callback) callback(err, result);
     });
@@ -164,8 +148,9 @@ app.use(allowCrossDomain);
 app.use(authorize);
 
 app.post('/login', function (req, res) {
-  log('req.body = ', req.body);
-  //Mongo.ops.insert('login', req.body);
+  log('/login req.body = ', req.body);
+  var query = { id : req.body.id };
+  Mongo.ops.upsert('login', query, req.body);
   res.status(201).send('ok');
 });
 
@@ -173,3 +158,34 @@ app.post('/login', function (req, res) {
 app.listen(3000);
 
 log('listening on port 3000');
+
+
+
+/**
+ * Custom logger to prevent circular reference in JSON.parse(obj)
+ */
+function log(msg, obj) {
+    console.log('\n');
+    if(obj) {
+        try {
+            console.log(msg + JSON.stringify(obj));
+        } catch(err) {
+            var simpleObject = {};
+            for (var prop in obj ){
+                if (!obj.hasOwnProperty(prop)){
+                    continue;
+                }
+                if (typeof(obj[prop]) == 'object'){
+                    continue;
+                }
+                if (typeof(obj[prop]) == 'function'){
+                    continue;
+                }
+                simpleObject[prop] = obj[prop];
+            }
+            console.log('circular-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
+        }        
+    } else {
+        console.log(msg);
+    }
+}
