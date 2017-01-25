@@ -23,8 +23,7 @@ function cacheWellKnownKeys() {
   request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
     var config    = JSON.parse(body);
     var address   = config.jwks_uri; // ex: https://www.googleapis.com/oauth2/v3/certs
-    var timestamp = moment();
-  
+
     // get the public json web keys
     request(address, function(err, res, body) {
 
