@@ -27,10 +27,19 @@ function cacheWellKnownKeys() {
   
     // get the public json web keys
     request(address, function(err, res, body) {
-      keyCache.keys         = JSON.parse(body).keys;
-      keyCache.lastUpdate   = timestamp;
-      keyCache.timeToLive   = timestamp.add(12, 'hours');
-      log('Cached keys = ', keyCache.keys);
+
+      keyCache.keys = JSON.parse(body).keys;
+
+      // example cache-control header: 
+      // public, max-age=24497, must-revalidate, no-transform
+      var cacheControl = res.headers['cache-control'];      
+      var values = cacheControl.split(',');
+      var maxAge = parseInt(values[1].split('=')[1]);
+      
+      // update the key cache when the max age expires
+      setTimeout(cacheWellKnownKeys, maxAge * 1000);
+      
+      log('Cached keys = ', keyCache.keys);      
     });
   });
 }
