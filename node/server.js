@@ -15,7 +15,6 @@ var keyCache = {}; // public key cache
 
 /**
  * Cache Google's well known public keys
- * TODO: refresh cache on public key change
  */
 function cacheWellKnownKeys() {
   
