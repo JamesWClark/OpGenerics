@@ -68,3 +68,13 @@ function post(url, json, success, error) {
   });
 }
 
+$('#plus-button').click(function() {
+    $('#plus-button-dialog').dialog('open');
+});
+
+$('#plus-button-dialog').dialog({
+    autoOpen: false,
+    height: 400,
+    width: 350,
+    modal: true,
+});

@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="google-signin-client_id" content="955192429695-5dcrirs5op9vnq8a1t2tvrruhesqcvmc.apps.googleusercontent.com">
   <title>The Daily Commit</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 
 <body>
@@ -14,9 +15,14 @@
   <div id="email"></div>
   <div id="photo"></div>
   
-  <div id="post-status"></div>
+  <button id="plus-button">+</button>
+  <div id="plus-button-dialog">
+      <input id="plus-name">
+      <button id="plus-add-button">Add</button>
+  </div>
   
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
   <script src="main.js"></script>
   <script src="https://apis.google.com/js/platform.js?onload=appStart" async defer></script>
