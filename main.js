@@ -72,9 +72,13 @@ $('#plus-button').click(function() {
     $('#plus-button-dialog').dialog('open');
 });
 
+$('#plus-add-button').click(function() {
+    $('#plus-button-dialog').dialog('close');
+});
+
 $('#plus-button-dialog').dialog({
     autoOpen: false,
     height: 400,
     width: 350,
-    modal: true,
+    modal: true
 });
