@@ -129,15 +129,21 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(allowCrossDomain);
-app.use(authorize);
+app.use('/a/*', authorize);
 
-app.post('/login', function(req, res) {
+app.post('/a/login', function(req, res) {
     log('/login req.body = ', req.body);
     var query = {
         id: req.body.id
     };
     Mongo.ops.upsert('login', query, req.body);
     res.status(201).send('ok');
+});
+
+app.post('/p/data', function(req, res) {
+    log('p data');
+    
+    res.status(200).send('ok');
 });
 
 // listen on port 3000

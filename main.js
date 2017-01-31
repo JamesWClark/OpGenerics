@@ -10,7 +10,7 @@ if (window.location.hostname === '127.0.0.1') {
 
 // prepend the url of node.js server
 function route(url) {
-  return 'http://192.168.1.9:3000' + url;
+  return 'http://localhost:3000' + url;
 }
 
 var profile;      // google user profile
@@ -28,9 +28,9 @@ function onSignIn(googleUser) {
       'imageUrl'      : profile.getImageUrl(),
       'email'         : profile.getEmail(),
       'hostedDomain'  : googleUser.getHostedDomain()
-  }
+  };
 
-  post('/login', login);
+  post('/a/login', login);
 
   $('.g-signin2').hide();
   $('#email').html('<p>' + profile.getEmail() + '</p>');
@@ -73,6 +73,7 @@ $('#plus-button').click(function() {
 });
 
 $('#plus-add-button').click(function() {
+    // don't just close here, but rather send a post to node and wait for a response 201
     $('#plus-button-dialog').dialog('close');
 });
 
