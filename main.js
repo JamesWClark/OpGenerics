@@ -10,7 +10,7 @@ if (window.location.hostname === '127.0.0.1') {
 
 // prepend the url of node.js server
 function route(url) {
-  return 'http://localhost:3000' + url;
+  return 'http://localhost:3000/a' + url;
 }
 
 var profile;      // google user profile
@@ -30,7 +30,7 @@ function onSignIn(googleUser) {
       'hostedDomain'  : googleUser.getHostedDomain()
   };
 
-  post('/a/login', login);
+  post('/login', login);
 
   $('.g-signin2').hide();
   $('#email').html('<p>' + profile.getEmail() + '</p>');
@@ -59,8 +59,8 @@ function post(url, json, success, error) {
     headers : {
       'Authorization' : authResponse.id_token
     },
-    success : function() {
-      if(success) success();
+    success : function(data, statusText, xhr) {
+      if(success) success(data, statusText, xhr);
     },
     error : function() {
       if(error) error();
@@ -68,13 +68,46 @@ function post(url, json, success, error) {
   });
 }
 
+function get(url, success, error) {
+    $.ajax({
+        url : route(url),
+        method : 'GET',
+        headers : {
+            'Authorization' : authResponse.id_token
+        },
+        success : function(data) {
+            if(success) success(data);
+        },
+        error : function() {
+            if(error) error();
+        }
+    })
+}
+
 $('#plus-button').click(function() {
     $('#plus-button-dialog').dialog('open');
 });
 
 $('#plus-add-button').click(function() {
-    // don't just close here, but rather send a post to node and wait for a response 201
-    $('#plus-button-dialog').dialog('close');
+    var txt = $('#plus-name').val();
+    var data = {
+        id : profile.getId(),
+        text : txt
+    };
+    post('/useless', data, function(res, statusText, xhr) {
+        if(xhr.status === 201) {
+            $('#plus-button-dialog').dialog('close');
+        } else {
+            $('#plus-error').text("didn't work b/c: " + xhr.status);
+        }
+        $('#mylist').append('<p>' + txt + '</p>');
+    });
+    
+});
+
+$('#mylist').on('click', 'p', function() {
+    $(this).prop('contentEditable', true);
+    $(this).after('<')
 });
 
 $('#plus-button-dialog').dialog({

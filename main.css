@@ -2,3 +2,7 @@
 #plus-button-dialog {
     display: none;
 }
+
+.red {
+    background-color: red;
+}

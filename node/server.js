@@ -140,6 +140,12 @@ app.post('/a/login', function(req, res) {
     res.status(201).send('ok');
 });
 
+app.post('/a/useless', function(req, res) {
+    log('/useless = ', req.body);
+    Mongo.ops.insert('useless', req.body);
+    res.status(201).send();
+});
+
 app.post('/p/data', function(req, res) {
     log('p data');
     
