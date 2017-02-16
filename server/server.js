@@ -1,7 +1,6 @@
 var fs = require('fs'); // file systems
 var jwt = require('jsonwebtoken'); // json web tokens
 var http = require('http'); // http protocol
-var moment = require('moment'); // time library
 var express = require('express'); // web server
 var request = require('request'); // http trafficer
 var jwkToPem = require('jwk-to-pem'); // converts json web key to pem
@@ -26,38 +25,69 @@ Mongo.connect(MONGO_URL, function(err, db) {
         
     Mongo.ops.find = function(collection, json, callback) {
         db.collection(collection).find(json).toArray(function(err, docs) {
-            // TODO: handle err
             if(callback) callback(err, docs);
         });
     };
     
     Mongo.ops.findOne = function(collection, json, callback) {
         db.collection(collection).findOne(json, function(err, doc) {
-            // TODO: handle err
             if(callback) callback(err, doc);
         });
     };
 
     Mongo.ops.insert = function(collection, json, callback) {
         db.collection(collection).insert(json, function(err, result) {
-            // TODO: handle err
             if(callback) callback(err, result);
         });
     };
 
     Mongo.ops.upsert = function(collection, query, json, callback) {
         db.collection(collection).updateOne(query, { $set: json }, { upsert: true }, function(err, result) {
-            // TODO: handle err
             if (callback) callback(err, result);
         });
     };
     
     Mongo.ops.updateOne = function(collection, query, json, callback) {
         db.collection(collection).updateOne(query, { $set : json }, function(err, result) {
-            // TODO: handle err
             if(callback) callback(err, result);
         });
     };
+    
+    Mongo.ops.deleteOne = function(collection, query, callback) {
+        db.collection(collection).deleteOne(query, function(error, result) {
+            if(callback) callback(error, result);
+        });
+    };
+    
+    Mongo.ops.deleteMany = function(collection, query, callback) {
+        db.collection(collection).deleteMany(query, function(error, result) {
+            if(callback) callback(error, result);
+        });
+    };
+});
+
+// web server
+var app = express();
+
+// use middlewares
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(allowCrossDomain);
+app.use(authorize);
+
+app.post('/login', function(req, res) {
+    var query = { id: req.body.id };
+    Mongo.ops.upsert('login', query, req.body, function(error, result) {
+      log('/login req.body = ', req.body);
+      if(error) res.status(500).send(error);
+      else res.status(201).send(result);      
+    });
+});
+
+// listen on port 3000
+app.listen(3000, function() {
+    cacheWellKnownKeys();
+    log('listening on port 3000');
 });
 
 /**
@@ -121,42 +151,6 @@ function authorize(req, res, next) {
         res.end();
     }
 }
-
-// web server
-var app = express();
-
-// use middlewares
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(allowCrossDomain);
-app.use('/a/*', authorize);
-
-app.post('/a/login', function(req, res) {
-    log('/login req.body = ', req.body);
-    var query = {
-        id: req.body.id
-    };
-    Mongo.ops.upsert('login', query, req.body);
-    res.status(201).send('ok');
-});
-
-app.post('/a/useless', function(req, res) {
-    log('/useless = ', req.body);
-    Mongo.ops.insert('useless', req.body);
-    res.status(201).send();
-});
-
-app.post('/p/data', function(req, res) {
-    log('p data');
-    
-    res.status(200).send('ok');
-});
-
-// listen on port 3000
-app.listen(3000, function() {
-    cacheWellKnownKeys();
-    log('listening on port 3000');
-});
 
 /**
  * Converts json web key to pem key
