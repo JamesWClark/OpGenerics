@@ -9,20 +9,25 @@ var Mongo = require('mongodb').MongoClient; // MongoDB driver
 
 var keyCache = {}; // public key cache
 
-const MONGO_URL = 'mongodb://localhost:27017/opgen';
+const MONGO_URL = 'mongodb://localhost:27017';
+const DB_NAME = 'opgen';
 const CLIENT_ID = '955192429695-5dcrirs5op9vnq8a1t2tvrruhesqcvmc.apps.googleusercontent.com';
 
 /**
  * MongoDB operations
  * connects to MongoDB and registers a series of asynchronous methods
  */
-Mongo.connect(MONGO_URL, function(err, db) {
-    
-    // TODO: handle err
+Mongo.connect(MONGO_URL, function(err, client) {
+  
+    if(err)
+      log('error connecting to MongoDB: ', err);
+    else
+      log('connected to MongoDB');
+  
+    const db = client.db(DB_NAME);
 
     Mongo.ops = {};
     
-        
     Mongo.ops.find = function(collection, json, callback) {
         db.collection(collection).find(json).toArray(function(err, docs) {
             if(callback) callback(err, docs);
@@ -68,8 +73,11 @@ Mongo.connect(MONGO_URL, function(err, db) {
 
 // web server
 var app = express();
+var webroot = __dirname + '/../client/';
+var port = 3000;
 
 // use middlewares
+app.use('/', express.static(webroot));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(allowCrossDomain);
