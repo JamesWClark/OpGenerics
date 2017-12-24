@@ -112,6 +112,12 @@ function allowCrossDomain(req, res, next) {
 /**
  * Middlware:
  * validate tokens and authorize users
+ * https://developers.google.com/identity/sign-in/web/backend-auth#verify-the-integrity-of-the-id-token
+ *  - 1. The ID token is properly signed by Google. Use Google's public keys (available in JWK or PEM format) to verify the token's signature.
+ *  - 2. The value of `aud` in the ID token is equal to one of your app's client IDs. This check is necessary to prevent ID tokens issued to a malicious app being used to access data about the same user on your app's backend server.
+ *  - 3. The value of `iss` in the ID token is equal to `accounts.google.com` or `https://accounts.google.com`.
+ *  - 4. The expiry time `exp` of the ID token has not passed.
+ *  - 5. If you want to restrict access to only members of your G Suite domain, verify that the ID token has an `hd` claim that matches your G Suite domain name.
  */
 function authorize(req, res, next) {
 
@@ -126,13 +132,17 @@ function authorize(req, res, next) {
         var iss         = decoded.payload.iss;
         var pem         = getPem(keyID);
 
+        // 3. The value of `iss` in the ID token is equal to `accounts.google.com` or `https://accounts.google.com`.
         if (iss === 'accounts.google.com' || iss === 'https://accounts.google.com') {
+            
+            // 2. The value of `aud` in the ID token is equal to one of your app's client IDs.
             var options = {
                 audience: CLIENT_ID,
                 issuer: iss,
                 algorithms: [algorithm]
             }
 
+            // 1. The ID token is properly signed by Google
             jwt.verify(token, pem, options, function(err) {
                 if (err) {
                     res.writeHead(401);
